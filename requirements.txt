@@ -1,2 +1,2 @@
-yt-dlp
-pytube
+# "default" menyertakan yt-dlp-ejs (dibutuhkan YouTube) dan mutagen (sisip thumbnail).
+yt-dlp[default]
