@@ -1,0 +1,22 @@
+# Virtual environment
+env/
+venv/
+.venv/
+
+# Hasil download
+video/
+*.mp4
+*.webm
+*.mkv
+*.mp3
+*.m4a
+*.part
+*.ytdl
+
+# Jupyter & Python
+.ipynb_checkpoints/
+__pycache__/
+
+# macOS
+.DS_Store
+._*
