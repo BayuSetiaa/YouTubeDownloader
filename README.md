@@ -1,12 +1,13 @@
 # YouTubeDownloader
 
-Script Python (`download.py`) untuk mendownload video dan audio YouTube dengan kualitas terbaik, memakai [yt-dlp](https://github.com/yt-dlp/yt-dlp).
+Script Python (`download.py`) untuk mendownload video dan audio YouTube dengan kualitas terbaik, memakai [yt-dlp](https://github.com/yt-dlp/yt-dlp). Hasilnya langsung bisa diputar di **QuickTime Player**, iPhone, dan iPad.
 
 ## Kualitas yang didapat
 
-- **Video**: otomatis mengambil resolusi tertinggi (sampai 4K/8K), fps tertinggi (60fps), HDR jika ada, dan codec terbaik (AV1 > VP9 > H.264), termasuk format bitrate tinggi jika tersedia.
-- **Audio**: stream audio terbaik (biasanya Opus) dari trek bahasa asli.
-- **Tanpa encode ulang**: video dan audio hanya digabung (*remux*) ke MP4, jadi kualitasnya sama persis dengan yang ada di server YouTube.
+- **Video**: otomatis mengambil resolusi tertinggi (sampai 4K/8K) dan fps tertinggi (60fps).
+- **Audio**: stream audio terbaik dari trek bahasa asli (bukan dubbing).
+- **Siap QuickTime tanpa mengorbankan kualitas**: pada resolusi tertinggi, script mengutamakan stream H.264/HEVC + AAC yang bisa langsung disalin ke MP4 **tanpa encode ulang**.
+- **Jika resolusi tertinggi hanya ada dalam AV1/VP9** (biasanya video 1440p/4K), video dikonversi ke HEVC dengan encoder hardware Mac. Kualitasnya dijaga sangat tinggi: pada pengujian skor VMAF ~98, artinya tidak bisa dibedakan dari aslinya.
 - **Lengkap**: judul, channel, tanggal, chapter, dan thumbnail ikut disisipkan ke dalam file.
 
 ## Persiapan (sekali saja)
@@ -27,9 +28,9 @@ Script Python (`download.py`) untuk mendownload video dan audio YouTube dengan k
 ```bash
 source env/bin/activate
 
-python download.py "https://youtu.be/VIDEO_ID"            # video kualitas tertinggi
+python download.py "https://youtu.be/VIDEO_ID"            # video kualitas tertinggi, siap QuickTime
 python download.py URL -q 1080                            # maksimal 1080p
-python download.py URL --compatible                       # H.264 + AAC, bisa diputar di mana saja
+python download.py URL --original                         # codec asli YouTube tanpa konversi
 python download.py URL --audio                            # audio saja, kualitas asli (tanpa konversi)
 python download.py URL --audio-format mp3                 # audio saja dalam MP3 kualitas tertinggi
 python download.py URL1 URL2                              # beberapa video sekaligus
@@ -43,13 +44,13 @@ Hasil download disimpan di folder `downloads/`. Lihat semua opsi dengan `python 
 
 | Kebutuhan | Perintah | Hasil |
 |---|---|---|
-| Kualitas gambar dan suara maksimal | *(default)* | AV1/VP9 + Opus dalam MP4, resolusi tertinggi |
-| Diputar di QuickTime, iPhone, WhatsApp, TV lama | `--compatible` | H.264 + AAC dalam MP4, biasanya maksimal 1080p |
+| Kualitas tertinggi, bisa diputar di QuickTime/iPhone | *(default)* | H.264/HEVC + AAC dalam MP4 |
+| Codec asli YouTube tanpa konversi sama sekali (termasuk HDR) | `--original` | AV1/VP9 + Opus dalam MP4, buka dengan [IINA](https://iina.io/) atau [VLC](https://www.videolan.org/) |
 | Audio kualitas maksimal | `--audio` | Opus asli (`.opus`) |
-| Audio untuk iPhone/Apple Music | `--audio --compatible` | AAC asli (`.m4a`), tanpa konversi |
+| Audio untuk iPhone/Apple Music | `--audio-format m4a` | AAC asli (`.m4a`), tanpa konversi |
 | Audio untuk perangkat lama | `--audio-format mp3` | MP3 VBR kualitas tertinggi (~245 kbps) |
 
-File mode default berisi codec AV1/VP9 + Opus, yang paling bagus kualitasnya tetapi belum didukung semua pemutar. Buka dengan [IINA](https://iina.io/) atau [VLC](https://www.videolan.org/) di Mac. Jika file harus bisa dibuka di QuickTime atau dikirim ke HP, pakai `--compatible`.
+Konversi ke HEVC hanya terjadi jika resolusi tertinggi tidak tersedia dalam H.264. Untuk video panjang beresolusi 4K, prosesnya bisa memakan waktu. Kalau tidak mau ada konversi, batasi resolusi dengan `-q 1080` (H.264 biasanya tersedia sampai 1080p) atau pakai `--original`.
 
 Konversi audio ke MP3, FLAC, atau WAV tidak menambah kualitas karena sumbernya dari YouTube sudah terkompresi. Format `best` (default) adalah yang paling bagus.
 
