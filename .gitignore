@@ -4,6 +4,7 @@ venv/
 .venv/
 
 # Hasil download
+downloads/
 video/
 *.mp4
 *.webm

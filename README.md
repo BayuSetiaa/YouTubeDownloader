@@ -1,38 +1,67 @@
 # YouTubeDownloader
 
-Kumpulan contoh kode Python untuk mendownload video dan audio dari YouTube, ditulis dalam notebook Jupyter (`main.ipynb`).
+Script Python (`download.py`) untuk mendownload video dan audio YouTube dengan kualitas terbaik, memakai [yt-dlp](https://github.com/yt-dlp/yt-dlp). Hasilnya langsung bisa diputar di **QuickTime Player**, iPhone, dan iPad.
 
-## Isi notebook
+## Kualitas yang didapat
 
-| Sel | Library | Fungsi |
-|---|---|---|
-| 0–2 | `pytube` | Percobaan awal: download resolusi tertinggi |
-| 3–4 | `yt-dlp` | Download kualitas `best` |
-| 5–7 | `yt-dlp` | Video maksimal 1080p, dikonversi ke MP4 |
-| 8 | `yt-dlp` | Video + audio terbaik, digabung jadi MP4 |
-| 9 | `yt-dlp` | Audio saja, dikonversi ke MP3 192 kbps |
-| 10 | `yt-dlp` | Video maksimal 480p, digabung jadi MP4 |
+- **Video**: otomatis mengambil resolusi tertinggi (sampai 4K/8K) dan fps tertinggi (60fps).
+- **Audio**: stream audio terbaik dari trek bahasa asli (bukan dubbing).
+- **Siap QuickTime tanpa mengorbankan kualitas**: pada resolusi tertinggi, script mengutamakan stream H.264/HEVC + AAC yang bisa langsung disalin ke MP4 **tanpa encode ulang**.
+- **Jika resolusi tertinggi hanya ada dalam AV1/VP9** (biasanya video 1440p/4K), video dikonversi ke HEVC dengan encoder hardware Mac. Kualitasnya dijaga sangat tinggi: pada pengujian skor VMAF ~98, artinya tidak bisa dibedakan dari aslinya.
+- **Lengkap**: judul, channel, tanggal, chapter, dan thumbnail ikut disisipkan ke dalam file.
 
-> `pytube` sudah tidak aktif dikembangkan dan sering gagal (HTTP 403). Gunakan sel yang memakai `yt-dlp`.
+## Persiapan (sekali saja)
 
-## Cara menjalankan
-
-1. Pasang [FFmpeg](https://ffmpeg.org/) (dibutuhkan untuk menggabungkan video/audio dan konversi ke MP3). Di macOS:
+1. Pasang FFmpeg (untuk menggabungkan video + audio) dan Deno (dibutuhkan YouTube agar semua format kualitas tinggi bisa diakses):
    ```bash
-   brew install ffmpeg
+   brew install ffmpeg deno
    ```
 2. Buat virtual environment dan pasang dependensi:
    ```bash
    python3 -m venv env
    source env/bin/activate
-   pip install -U -r requirements.txt jupyter
-   ```
-3. Buka notebook, ganti nilai `video_url` dengan link YouTube yang ingin didownload, lalu jalankan selnya:
-   ```bash
-   jupyter notebook main.ipynb
+   pip install -U -r requirements.txt
    ```
 
-Jika download gagal, perbarui `yt-dlp` terlebih dahulu (`pip install -U yt-dlp`), karena YouTube sering mengubah sistemnya.
+## Cara pakai
+
+```bash
+source env/bin/activate
+
+python download.py "https://youtu.be/VIDEO_ID"            # video kualitas tertinggi, siap QuickTime
+python download.py URL -q 1080                            # maksimal 1080p
+python download.py URL --original                         # codec asli YouTube tanpa konversi
+python download.py URL --audio                            # audio saja, kualitas asli (tanpa konversi)
+python download.py URL --audio-format mp3                 # audio saja dalam MP3 kualitas tertinggi
+python download.py URL1 URL2                              # beberapa video sekaligus
+python download.py PLAYLIST_URL --playlist                # satu playlist penuh
+python download.py URL -o ~/Movies                        # simpan ke folder lain
+```
+
+Hasil download disimpan di folder `downloads/`. Lihat semua opsi dengan `python download.py --help`.
+
+## Memilih mode
+
+| Kebutuhan | Perintah | Hasil |
+|---|---|---|
+| Kualitas tertinggi, bisa diputar di QuickTime/iPhone | *(default)* | H.264/HEVC + AAC dalam MP4 |
+| Codec asli YouTube tanpa konversi sama sekali (termasuk HDR) | `--original` | AV1/VP9 + Opus dalam MP4, buka dengan [IINA](https://iina.io/) atau [VLC](https://www.videolan.org/) |
+| Audio kualitas maksimal | `--audio` | Opus asli (`.opus`) |
+| Audio untuk iPhone/Apple Music | `--audio-format m4a` | AAC asli (`.m4a`), tanpa konversi |
+| Audio untuk perangkat lama | `--audio-format mp3` | MP3 VBR kualitas tertinggi (~245 kbps) |
+
+Konversi ke HEVC hanya terjadi jika resolusi tertinggi tidak tersedia dalam H.264. Untuk video panjang beresolusi 4K, prosesnya bisa memakan waktu. Kalau tidak mau ada konversi, batasi resolusi dengan `-q 1080` (H.264 biasanya tersedia sampai 1080p) atau pakai `--original`.
+
+Konversi audio ke MP3, FLAC, atau WAV tidak menambah kualitas karena sumbernya dari YouTube sudah terkompresi. Format `best` (default) adalah yang paling bagus.
+
+## Jika download gagal
+
+- Perbarui yt-dlp, karena YouTube sering mengubah sistemnya: `pip install -U -r requirements.txt`
+- Untuk video yang dibatasi umur, khusus member, atau kualitas YouTube Premium, pakai login dari browser: `--cookies-from-browser chrome` (atau `safari`, `firefox`).
+
+## Notebook lama
+
+`main.ipynb` berisi percobaan awal (pytube dan yt-dlp) sebelum dirapikan menjadi `download.py`. Sel pytube sudah tidak berfungsi, dan beberapa sel di sana meng-encode ulang video atau mengonversi audio ke MP3 192 kbps sehingga kualitasnya turun. Gunakan `download.py`.
 
 ## Catatan
 
